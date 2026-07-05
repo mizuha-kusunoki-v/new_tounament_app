@@ -1,0 +1,51 @@
+# Render Blueprint - https://render.com/docs/blueprint-spec
+#
+# Deploys:
+#   - new-tounament-db        Managed Postgres
+#   - new-tounament-backend   FastAPI (runs Alembic migrations on every deploy)
+#   - new-tounament-frontend  Next.js
+#
+# NEXT_PUBLIC_API_BASE_URL and ALLOWED_ORIGINS below are hardcoded to each
+# other's default onrender.com URL (predictable from the "name" fields here).
+# If you rename either service in the Render dashboard, update both values
+# and manually redeploy the frontend (NEXT_PUBLIC_* vars are baked in at
+# build time, so changing the env var alone does not take effect until the
+# next build).
+
+databases:
+  - name: new-tounament-db
+    plan: free
+    databaseName: tournament
+    user: tournament
+
+services:
+  - type: web
+    name: new-tounament-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.6
+      - key: DATABASE_URL
+        fromDatabase:
+          name: new-tounament-db
+          property: connectionString
+      - key: ALLOWED_ORIGINS
+        value: https://new-tounament-frontend.onrender.com
+
+  - type: web
+    name: new-tounament-frontend
+    runtime: node
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npx next start -p $PORT
+    envVars:
+      - key: NODE_VERSION
+        value: 22.11.0
+      - key: NEXT_PUBLIC_API_BASE_URL
+        value: https://new-tounament-backend.onrender.com

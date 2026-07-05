@@ -36,4 +36,25 @@ npm run dev
 
 シングルエリミネーションでは敗者復活ブラケット・グランドファイナルは一切生成されず、勝者ブラケットの優勝チームがそのまま大会優勝となる。チームの毎ラウンド再シャッフルはどちらの形式でも共通。
 
-`manage_token` / `public_slug` は推測困難なトークンによる簡易的なアクセス制御であり、本格的なログイン認証ではない（MVP範囲外として計画済みの仕様）。
+`manage_token` / `public_slug` は推測困難なトークンによる簡易的なアクセス制御であり、本格的なログイン認証ではない（MVP範囲外として計画済みの仕様）。一般公開する場合、`manage_token`を含むURLの取り扱いには注意（漏洩するとその大会を誰でも操作できてしまう）。
+
+## Renderへのデプロイ
+
+ルートの `render.yaml` がBlueprintとして以下3つを定義済み:
+
+- `new-tounament-db` — 管理型Postgres
+- `new-tounament-backend` — FastAPI（デプロイのたびに`alembic upgrade head`を実行）
+- `new-tounament-frontend` — Next.js
+
+手順:
+
+1. GitHubにpush済みのこのリポジトリをRenderに接続し、「New +」→「Blueprint」から`render.yaml`を検出させて作成する。
+2. 両サービスのデプロイ完了後、URLがそれぞれ `https://new-tounament-backend.onrender.com` / `https://new-tounament-frontend.onrender.com` になっているか確認する（Renderダッシュボードでサービス名を変えた場合は`render.yaml`内の`ALLOWED_ORIGINS`と`NEXT_PUBLIC_API_BASE_URL`を実際のURLに書き換えて再デプロイが必要）。
+3. `NEXT_PUBLIC_API_BASE_URL`はNext.jsのビルド時に埋め込まれる値のため、後から環境変数を変更した場合は再ビルド（Manual Deploy）が必要。
+
+**Renderの無料プランの制約（要確認）:**
+- 無料Postgresは**作成から30日で期限切れ**、その後14日間の猶予期間内にアップグレードしないと削除される。継続的にデータを残したい場合は有料プラン（`basic-1gb`等）への変更を検討。
+- 無料Webサービスは**15分間アクセスがないとスリープ**し、次のアクセス時に起動に数十秒かかる。
+- ワークスペース全体で月750時間の無料枠。
+
+本番運用でデータを保持し続けたい場合は、`render.yaml`の`databases.plan`を無料以外に変更することを推奨。
