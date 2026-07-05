@@ -7,6 +7,8 @@ import { addParticipant, ApiError, getManageState, removeParticipant, reportMatc
 import { FORMAT_LABEL } from "@/lib/types";
 import ParticipantList from "@/components/ParticipantList";
 import RoundHistory from "@/components/RoundHistory";
+import ChampionCard from "@/components/ChampionCard";
+import ImageCapture from "@/components/ImageCapture";
 
 export default function ManagePage() {
   const { manageToken } = useParams<{ manageToken: string }>();
@@ -107,14 +109,20 @@ export default function ManagePage() {
         </>
       )}
 
-      {state.status !== "SETUP" && (
-        <RoundHistory
-          state={state}
-          isManage
-          onReport={handleReport}
-          reportingMatchId={reportingMatchId}
-        />
+      {state.status === "COMPLETE" && (
+        <ImageCapture filename={`${state.name}-champion.png`} buttonLabel="優勝カードを画像で保存">
+          <ChampionCard state={state} />
+        </ImageCapture>
       )}
+
+      {state.status !== "SETUP" &&
+        (state.status === "COMPLETE" ? (
+          <ImageCapture filename={`${state.name}-bracket.png`} buttonLabel="ブラケット全体を画像で保存">
+            <RoundHistory state={state} isManage onReport={handleReport} reportingMatchId={reportingMatchId} />
+          </ImageCapture>
+        ) : (
+          <RoundHistory state={state} isManage onReport={handleReport} reportingMatchId={reportingMatchId} />
+        ))}
     </div>
   );
 }

@@ -6,6 +6,8 @@ import { getPublicState } from "@/lib/api";
 import { FORMAT_LABEL } from "@/lib/types";
 import ParticipantList from "@/components/ParticipantList";
 import RoundHistory from "@/components/RoundHistory";
+import ChampionCard from "@/components/ChampionCard";
+import ImageCapture from "@/components/ImageCapture";
 
 export default function PublicViewPage() {
   const { publicSlug } = useParams<{ publicSlug: string }>();
@@ -30,7 +32,20 @@ export default function PublicViewPage() {
         </>
       )}
 
-      {state.status !== "SETUP" && <RoundHistory state={state} isManage={false} />}
+      {state.status === "COMPLETE" && (
+        <ImageCapture filename={`${state.name}-champion.png`} buttonLabel="優勝カードを画像で保存">
+          <ChampionCard state={state} />
+        </ImageCapture>
+      )}
+
+      {state.status !== "SETUP" &&
+        (state.status === "COMPLETE" ? (
+          <ImageCapture filename={`${state.name}-bracket.png`} buttonLabel="ブラケット全体を画像で保存">
+            <RoundHistory state={state} isManage={false} />
+          </ImageCapture>
+        ) : (
+          <RoundHistory state={state} isManage={false} />
+        ))}
     </div>
   );
 }

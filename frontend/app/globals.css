@@ -168,15 +168,6 @@ button.secondary {
   font-size: 0.85rem;
 }
 
-.champion-banner {
-  margin: 1rem 0;
-  padding: 1rem;
-  border-radius: 8px;
-  border: 2px solid #d4af37;
-  background: #d4af3722;
-  font-weight: 600;
-}
-
 .share-link {
   font-size: 0.85rem;
   word-break: break-all;
@@ -186,4 +177,54 @@ button.secondary {
 .error-banner {
   color: #b00020;
   margin-bottom: 1rem;
+}
+
+/* Fixed light colors (not theme variables) so the exported image looks the
+   same regardless of the viewer's light/dark mode setting. */
+.champion-card {
+  margin: 1rem 0;
+  padding: 2.5rem 1.5rem;
+  border-radius: 12px;
+  border: 3px solid #d4af37;
+  background: linear-gradient(180deg, #fffdf5, #fff8e0);
+  color: #2a2a2a;
+  text-align: center;
+}
+
+.champion-card-format {
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  opacity: 0.65;
+  margin-bottom: 0.25rem;
+}
+
+.champion-card-title {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+
+.champion-card-trophy {
+  font-size: 3rem;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.champion-card-names {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.champion-card-label {
+  font-size: 1rem;
+  letter-spacing: 0.2em;
+  opacity: 0.7;
+}
+
+.image-capture {
+  margin-bottom: 1.5rem;
+}
+
+.image-capture-target {
+  background: var(--background);
 }
