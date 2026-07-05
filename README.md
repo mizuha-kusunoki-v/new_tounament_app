@@ -30,7 +30,9 @@ cp .env.local.example .env.local   # NEXT_PUBLIC_API_BASE_URL=http://localhost:8
 npm run dev
 ```
 
-- `/` — 大会作成（シングル/ダブルエリミネーションを選択可能。デフォルトはダブルエリミネーション）
+- `/` — ログイン状態に応じて`/admin`（未ログインならさらに`/admin/login`へ）にリダイレクトするだけのページ
+- `/admin/login` → `/admin` — 管理者ログイン後のダッシュボード。「＋ 大会を作成」ボタンから`/admin/create`へ
+- `/admin/create` — 大会作成フォーム（シングル/ダブルエリミネーションを選択可能。デフォルトはダブルエリミネーション。要ログイン）
 - `/manage/{manageToken}` — 主催者用管理画面（参加者登録・開始・結果報告）
 - `/view/{publicSlug}` — 参加者向け公開閲覧（ログイン不要、3秒間隔で自動更新）
 
@@ -43,9 +45,12 @@ npm run dev
 ### 管理者ダッシュボード（複数人主催向け）
 
 - `/admin/login` — 管理者ログイン
-- `/admin` — 全大会の一覧・削除、管理者アカウントの追加
+- `/admin` — 全大会の一覧・削除、管理者アカウントの追加、「＋ 大会を作成」ボタン
+- `/admin/create` — 大会作成フォーム（要ログイン。ここも`useRequireAdmin`で未ログイン時は`/admin/login`へリダイレクト）
 
 `manage_token`/`public_slug`とは別の、ユーザー名+パスワードによる本格的な認証レイヤー。JWT（有効期限7日）を発行し、フロントは`localStorage`に保存して`Authorization`ヘッダーで送信する（Cookieセッションではない。理由: フロントとバックエンドが別ドメインのため）。
+
+注意: 上記はフロントエンドの画面遷移レベルでのログイン必須化であり、バックエンドの`POST /tournaments`エンドポイント自体は引き続き認証不要（直接APIを叩けば作成可能）。UIの導線をadmin配下に統一するための変更であり、API自体を保護したい場合は別途対応が必要。
 
 最初の管理者アカウントは環境変数`ADMIN_BOOTSTRAP_USERNAME`/`ADMIN_BOOTSTRAP_PASSWORD`から起動時に自動生成される（`admin_users`テーブルが空の場合のみ、冪等）。2人目以降はログイン後にダッシュボード上の「管理者を追加」フォームから追加する。ローカル開発では`backend/.env`にこの2つの環境変数を設定してから起動する。
 

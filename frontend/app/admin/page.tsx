@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import {
@@ -12,6 +12,7 @@ import {
   listAllTournaments,
 } from "@/lib/api";
 import { FORMAT_LABEL } from "@/lib/types";
+import { useRequireAdmin } from "@/lib/useAdminAuth";
 
 const STATUS_LABEL: Record<string, string> = {
   SETUP: "登録受付中",
@@ -19,32 +20,9 @@ const STATUS_LABEL: Record<string, string> = {
   COMPLETE: "終了",
 };
 
-function subscribeToStorage(callback: () => void) {
-  window.addEventListener("storage", callback);
-  return () => window.removeEventListener("storage", callback);
-}
-
-/** SSR-safe read of the admin token: matches server (null) during hydration,
- * then picks up the real localStorage value once mounted on the client. */
-function useAdminToken(): string | null {
-  return useSyncExternalStore(subscribeToStorage, getAdminToken, () => null);
-}
-
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const token = useAdminToken();
-
-  useEffect(() => {
-    // Deliberately a direct, one-time read (not the `token` above): during
-    // hydration useSyncExternalStore briefly reports the SSR value (null)
-    // before self-correcting to the real client value on the very next
-    // paint, and this effect would otherwise fire on that transient null
-    // and redirect an already-logged-in admin straight back to /login.
-    if (!getAdminToken()) {
-      router.push("/admin/login");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const token = useRequireAdmin();
 
   const { data: tournaments, error, mutate } = useSWR(token ? "admin-tournaments" : null, () =>
     listAllTournaments()
@@ -115,7 +93,12 @@ export default function AdminDashboardPage() {
 
       {actionError && <p className="error-banner">{actionError}</p>}
 
-      <h2>登録済みの大会（{tournaments.length}件）</h2>
+      <div className="field-row" style={{ justifyContent: "space-between" }}>
+        <h2>登録済みの大会（{tournaments.length}件）</h2>
+        <a href="/admin/create">
+          <button>＋ 大会を作成</button>
+        </a>
+      </div>
       {tournaments.length === 0 && <p>まだ大会がありません。</p>}
       {tournaments.map((t) => (
         <div key={t.id} className="card match-card">
