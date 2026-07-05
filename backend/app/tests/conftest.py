@@ -1,3 +1,7 @@
+import os
+
+os.environ.setdefault("ADMIN_JWT_SECRET", "test-secret-key-for-pytest-only")
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -25,5 +29,8 @@ def client():
 
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as test_client:
+        # Exposed so tests can seed rows (e.g. an AdminUser) directly into
+        # this test's isolated in-memory DB, bypassing the HTTP layer for setup.
+        test_client.SessionLocal = TestingSessionLocal
         yield test_client
     app.dependency_overrides.clear()

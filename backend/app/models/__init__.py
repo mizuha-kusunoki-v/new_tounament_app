@@ -1,3 +1,4 @@
+from app.models.admin_user import AdminUser
 from app.models.bracket_round import BracketRound
 from app.models.enums import Bracket, MatchKind, RoundStatus, TournamentFormat, TournamentStatus
 from app.models.match import Match
@@ -6,6 +7,7 @@ from app.models.team import Team
 from app.models.tournament import Tournament
 
 __all__ = [
+    "AdminUser",
     "BracketRound",
     "Bracket",
     "MatchKind",

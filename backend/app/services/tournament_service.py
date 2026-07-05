@@ -461,3 +461,33 @@ def report_match_result(
             _maybe_complete_single_elimination(db, tournament)
 
     db.commit()
+
+
+def delete_tournament_cascade(db: Session, tournament: Tournament) -> None:
+    """Delete a tournament and everything under it.
+
+    Deliberately NOT a bare db.delete(tournament) relying on ORM cascades:
+    Team.player_one_id/player_two_id, Match.team_a_id/team_b_id/winner_team_id,
+    and BracketRound.waiting_bye_participant_id/excluded_participant_id are
+    plain FK columns with no relationship() attached, so SQLAlchemy's cascade
+    machinery doesn't know about them. Since none of these FKs have
+    ondelete= set at the DB level either, a naive ORM delete can hit a
+    Postgres FK violation depending on statement ordering. Deleting in this
+    explicit order (matches -> teams -> bracket_rounds -> participants ->
+    tournament) satisfies every FK dependency regardless of what the ORM's
+    own cascade graph does or doesn't know about.
+    """
+    round_ids = [r.id for r in db.query(BracketRound.id).filter(BracketRound.tournament_id == tournament.id)]
+    team_ids = (
+        [t.id for t in db.query(Team.id).filter(Team.bracket_round_id.in_(round_ids))] if round_ids else []
+    )
+
+    if round_ids:
+        db.query(Match).filter(Match.bracket_round_id.in_(round_ids)).delete(synchronize_session=False)
+    if team_ids:
+        db.query(Team).filter(Team.id.in_(team_ids)).delete(synchronize_session=False)
+    if round_ids:
+        db.query(BracketRound).filter(BracketRound.id.in_(round_ids)).delete(synchronize_session=False)
+    db.query(Participant).filter(Participant.tournament_id == tournament.id).delete(synchronize_session=False)
+    db.delete(tournament)
+    db.commit()

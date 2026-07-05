@@ -62,3 +62,19 @@ export interface TournamentCreated {
   public_slug: string;
   format: TournamentFormat;
 }
+
+export interface AdminTournamentListItem {
+  id: string;
+  name: string;
+  format: TournamentFormat;
+  status: TournamentStatus;
+  created_at: string;
+  manage_token: string;
+  public_slug: string;
+}
+
+export interface AdminUser {
+  id: string;
+  username: string;
+  created_at: string;
+}
